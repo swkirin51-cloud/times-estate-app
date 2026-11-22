@@ -8,7 +8,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #0f172a;
+            --bg-color: #0b1120;
             --card-bg: #1e293b;
             --card-border: #334155;
             --text-primary: #f8fafc;
@@ -33,7 +33,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
-            padding: 16px 16px 40px;
+            padding: 12px 14px 34px;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -45,9 +45,9 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.6);
         }
 
         .brand-badge {
@@ -72,7 +72,7 @@
 
         .status-pill {
             font-size: 11px;
-            padding: 4px 10px;
+            padding: 3px 9px;
             border-radius: 20px;
             background: rgba(56, 189, 248, 0.1);
             color: var(--accent);
@@ -80,31 +80,72 @@
             font-weight: 600;
         }
 
-        /* Карточка здания / объекта */
+        /* Главная карточка с фото здания */
         .building-card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
-            border-radius: 18px;
-            padding: 18px;
-            margin-bottom: 18px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.4);
             position: relative;
+        }
+
+        /* Фотография здания */
+        .photo-wrapper {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            background: #1e293b;
             overflow: hidden;
         }
 
-        .building-card::after {
-            content: "";
+        .photo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+
+        /* Градиент затемнения поверх фото */
+        .photo-gradient {
             position: absolute;
-            top: 0;
+            bottom: 0;
+            left: 0;
             right: 0;
-            width: 120px;
-            height: 120px;
-            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-            pointer-events: none;
+            height: 80%;
+            background: linear-gradient(to top, rgba(30, 41, 59, 1) 0%, rgba(30, 41, 59, 0.7) 40%, transparent 100%);
+            display: flex;
+            align-items: flex-end;
+            padding: 16px 16px 10px;
+        }
+
+        .photo-badges {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .class-badge {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .card-body {
+            padding: 6px 16px 16px;
         }
 
         .building-name {
-            font-size: 19px;
+            font-size: 20px;
             font-weight: 800;
             color: #fff;
             margin-bottom: 4px;
@@ -116,7 +157,7 @@
             margin-bottom: 14px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
 
         /* Параметры лота сеткой */
@@ -127,7 +168,7 @@
         }
 
         .spec-item {
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(11, 17, 32, 0.7);
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 12px;
             padding: 10px 12px;
@@ -155,12 +196,12 @@
 
         /* Секция выбора статуса */
         .section-title {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.6px;
             color: var(--text-secondary);
-            margin: 16px 0 10px 4px;
+            margin: 4px 0 10px 4px;
         }
 
         /* Интерактивные селекторы (в стиле рилса: плашки выбора) */
@@ -177,7 +218,7 @@
             border-radius: 14px;
             padding: 14px 10px;
             color: var(--text-primary);
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: 700;
             cursor: pointer;
             display: flex;
@@ -188,7 +229,7 @@
         }
 
         .btn-select .icon {
-            font-size: 22px;
+            font-size: 20px;
         }
 
         .btn-select.active-green {
@@ -223,8 +264,8 @@
             border: 1px solid var(--gold);
             border-radius: 16px;
             padding: 16px;
-            margin-top: 8px;
-            margin-bottom: 16px;
+            margin-top: 4px;
+            margin-bottom: 14px;
             animation: fadeIn 0.25s ease;
         }
 
@@ -234,7 +275,7 @@
         }
 
         .field-group {
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         .field-group:last-child {
@@ -251,7 +292,7 @@
 
         .input-field {
             width: 100%;
-            background: #0f172a;
+            background: #0b1120;
             border: 1px solid var(--card-border);
             border-radius: 10px;
             padding: 12px 14px;
@@ -267,10 +308,10 @@
             box-shadow: 0 0 0 2px var(--accent-glow);
         }
 
-        /* Главная кнопка действия (MainButton внизу) */
+        /* Главная кнопка действия */
         .main-action-btn {
             margin-top: auto;
-            padding-top: 14px;
+            padding-top: 8px;
         }
 
         .btn-submit {
@@ -280,7 +321,7 @@
             border: none;
             border-radius: 14px;
             color: #fff;
-            font-size: 16px;
+            font-size: 15.5px;
             font-weight: 800;
             letter-spacing: 0.3px;
             cursor: pointer;
@@ -297,7 +338,7 @@
             display: none;
             text-align: center;
             margin: auto 0;
-            padding: 20px 0;
+            padding: 30px 10px;
             animation: fadeIn 0.3s ease;
         }
 
@@ -340,25 +381,37 @@
     </header>
 
     <div id="contentBlock">
-        <!-- Карточка здания -->
+        <!-- Карточка здания с фото -->
         <div class="building-card">
-            <div class="building-name" id="objName">БЦ «Белый Камень»</div>
-            <div class="building-address">
-                <span>📍</span> <span id="objAddress">г. Москва, ул. Красная Пресня, д. 24</span>
+            <div class="photo-wrapper">
+                <img class="photo-img" id="buildingImg" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80" alt="БЦ Белый Камень">
+                <div class="photo-badges">
+                    <div class="class-badge">Класс А</div>
+                    <div class="class-badge" style="background: rgba(2, 132, 199, 0.85);">м. 1905 года (3 мин)</div>
+                </div>
+                <div class="photo-gradient">
+                    <div class="building-name" id="objName">БЦ «Белый Камень»</div>
+                </div>
             </div>
 
-            <div class="specs-grid">
-                <div class="spec-item">
-                    <div class="spec-label">Площадь</div>
-                    <div class="spec-val"><span id="lotArea">145</span> м²</div>
+            <div class="card-body">
+                <div class="building-address">
+                    <span>📍</span> <span id="objAddress">г. Москва, ул. Красная Пресня, д. 24</span>
                 </div>
-                <div class="spec-item">
-                    <div class="spec-label">Ставка в год</div>
-                    <div class="spec-val"><span id="lotRate">42 000</span> <span>₽/м²</span></div>
-                </div>
-                <div class="spec-item" style="grid-column: span 2;">
-                    <div class="spec-label">Аренда в месяц</div>
-                    <div class="spec-val" style="color: var(--accent);"><span id="lotMonth">~507 500</span> <span>₽/мес</span></div>
+
+                <div class="specs-grid">
+                    <div class="spec-item">
+                        <div class="spec-label">Площадь</div>
+                        <div class="spec-val"><span id="lotArea">145</span> м²</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-label">Ставка в год</div>
+                        <div class="spec-val"><span id="lotRate">42 000</span> <span>₽/м²</span></div>
+                    </div>
+                    <div class="spec-item" style="grid-column: span 2;">
+                        <div class="spec-label">Аренда в месяц</div>
+                        <div class="spec-val" style="color: var(--accent);"><span id="lotMonth">~507 500</span> <span>₽/мес</span></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -392,7 +445,7 @@
             </div>
             <div class="field-group">
                 <label class="field-label">Комментарий для брокера:</label>
-                <input type="text" class="input-field" id="newComment" placeholder="Например: возможен торг от 100 м²">
+                <input type="text" class="input-field" id="newComment" placeholder="Например: готовы делить от 50 м²">
             </div>
         </div>
 
@@ -416,9 +469,8 @@
         if (tg) {
             tg.ready();
             tg.expand();
-            // Настройка цветовой гаммы шапки Telegram
-            tg.setHeaderColor('#0f172a');
-            tg.setBackgroundColor('#0f172a');
+            tg.setHeaderColor('#0b1120');
+            tg.setBackgroundColor('#0b1120');
         }
 
         let currentChoice = 'actual';
@@ -474,12 +526,10 @@
                 timestamp: new Date().toISOString()
             };
 
-            // Если открыто внутри Telegram Mini App — отправляем данные боту
             if (tg && tg.sendData) {
                 tg.sendData(JSON.stringify(payload));
             }
 
-            // Показываем стильный экран подтверждения
             document.getElementById('contentBlock').style.display = 'none';
             document.getElementById('successScreen').style.display = 'block';
         }
@@ -492,7 +542,6 @@
             }
         }
 
-        // Инициализация кнопки
         selectStatus('actual');
     </script>
 </body>
