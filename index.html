@@ -105,7 +105,6 @@
             height: 100%;
             object-fit: cover;
             display: block;
-            transition: transform 0.3s ease;
         }
 
         /* Градиент затемнения поверх фото */
@@ -194,6 +193,46 @@
             color: var(--text-secondary);
         }
 
+        /* Кнопка добавления фото на карточке */
+        .upload-photo-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px dashed var(--accent);
+            border-radius: 12px;
+            padding: 11px;
+            margin-top: 12px;
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .upload-photo-btn:active {
+            background: rgba(56, 189, 248, 0.18);
+        }
+
+        .photo-preview-grid {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .photo-thumb {
+            width: 56px;
+            height: 56px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 1px solid var(--card-border);
+            flex-shrink: 0;
+        }
+
         /* Секция выбора статуса */
         .section-title {
             font-size: 12px;
@@ -204,7 +243,7 @@
             margin: 4px 0 10px 4px;
         }
 
-        /* Интерактивные селекторы (в стиле рилса: плашки выбора) */
+        /* Интерактивные селекторы */
         .status-selector {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -413,6 +452,13 @@
                         <div class="spec-val" style="color: var(--accent);"><span id="lotMonth">~507 500</span> <span>₽/мес</span></div>
                     </div>
                 </div>
+
+                <!-- Кнопка «Добавить актуальные фото» -->
+                <input type="file" id="photoInput" accept="image/*" multiple style="display:none;" onchange="handlePhotoUpload(event)">
+                <button type="button" class="upload-photo-btn" onclick="document.getElementById('photoInput').click()">
+                    <span>📸</span> <span>Добавить фото помещения</span>
+                </button>
+                <div class="photo-preview-grid" id="photoPreviewGrid"></div>
             </div>
         </div>
 
@@ -474,11 +520,33 @@
         }
 
         let currentChoice = 'actual';
+        const uploadedPhotos = [];
 
         function haptic(type = 'light') {
             if (tg && tg.HapticFeedback) {
                 if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
                 else tg.HapticFeedback.impactOccurred(type);
+            }
+        }
+
+        function handlePhotoUpload(event) {
+            const files = event.target.files;
+            if (!files || !files.length) return;
+
+            haptic('medium');
+            const grid = document.getElementById('photoPreviewGrid');
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                uploadedPhotos.push(file.name);
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'photo-thumb';
+                    grid.appendChild(img);
+                };
+                reader.readAsDataURL(file);
             }
         }
 
@@ -522,6 +590,7 @@
                 new_rate: document.getElementById('newRate').value,
                 new_area: document.getElementById('newArea').value,
                 comment: document.getElementById('newComment').value,
+                photos_count: uploadedPhotos.length,
                 block_id: 99901,
                 timestamp: new Date().toISOString()
             };
