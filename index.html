@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Times Estate · Актуализация объекта</title>
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.25);
+            --green: #22c55e;
+            --green-glow: rgba(34, 197, 94, 0.25);
+            --red: #ef4444;
+            --red-glow: rgba(239, 68, 68, 0.25);
+            --gold: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            padding: 16px 16px 40px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Шапка с брендом */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+
+        .brand-badge::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .status-pill {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            font-weight: 600;
+        }
+
+        /* Карточка здания / объекта */
+        .building-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .building-card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .building-name {
+            font-size: 19px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .building-address {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Параметры лота сеткой */
+        .specs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .spec-item {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 10px 12px;
+        }
+
+        .spec-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .spec-val {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .spec-val span {
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+
+        /* Секция выбора статуса */
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-secondary);
+            margin: 16px 0 10px 4px;
+        }
+
+        /* Интерактивные селекторы (в стиле рилса: плашки выбора) */
+        .status-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .btn-select {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 14px;
+            padding: 14px 10px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-select .icon {
+            font-size: 22px;
+        }
+
+        .btn-select.active-green {
+            background: rgba(34, 197, 94, 0.12);
+            border-color: var(--green);
+            color: #4ade80;
+            box-shadow: 0 0 20px var(--green-glow);
+        }
+
+        .btn-select.active-red {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: var(--red);
+            color: #f87171;
+            box-shadow: 0 0 20px var(--red-glow);
+        }
+
+        .btn-select-full {
+            grid-column: span 2;
+        }
+
+        .btn-select.active-gold {
+            background: rgba(245, 158, 11, 0.12);
+            border-color: var(--gold);
+            color: #fbbf24;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+        }
+
+        /* Панель редактирования условий */
+        .edit-panel {
+            display: none;
+            background: var(--card-bg);
+            border: 1px solid var(--gold);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 8px;
+            margin-bottom: 16px;
+            animation: fadeIn 0.25s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .field-group {
+            margin-bottom: 14px;
+        }
+
+        .field-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .input-field {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .input-field:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        /* Главная кнопка действия (MainButton внизу) */
+        .main-action-btn {
+            margin-top: auto;
+            padding-top: 14px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(2, 132, 199, 0.35);
+            transition: all 0.2s ease;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        /* Экран успеха */
+        .success-screen {
+            display: none;
+            text-align: center;
+            margin: auto 0;
+            padding: 20px 0;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .success-icon {
+            width: 72px;
+            height: 72px;
+            background: rgba(34, 197, 94, 0.15);
+            border: 2px solid var(--green);
+            color: var(--green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            margin: 0 auto 16px;
+            box-shadow: 0 0 30px var(--green-glow);
+        }
+
+        .success-title {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .success-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            max-width: 300px;
+            margin: 0 auto 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="brand-badge">Times Estate</div>
+        <div class="status-pill">Актуализация</div>
+    </header>
+
+    <div id="contentBlock">
+        <!-- Карточка здания -->
+        <div class="building-card">
+            <div class="building-name" id="objName">БЦ «Белый Камень»</div>
+            <div class="building-address">
+                <span>📍</span> <span id="objAddress">г. Москва, ул. Красная Пресня, д. 24</span>
+            </div>
+
+            <div class="specs-grid">
+                <div class="spec-item">
+                    <div class="spec-label">Площадь</div>
+                    <div class="spec-val"><span id="lotArea">145</span> м²</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Ставка в год</div>
+                    <div class="spec-val"><span id="lotRate">42 000</span> <span>₽/м²</span></div>
+                </div>
+                <div class="spec-item" style="grid-column: span 2;">
+                    <div class="spec-label">Аренда в месяц</div>
+                    <div class="spec-val" style="color: var(--accent);"><span id="lotMonth">~507 500</span> <span>₽/мес</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Подтвердите статус лота:</div>
+
+        <div class="status-selector">
+            <button class="btn-select active-green" id="btnActual" onclick="selectStatus('actual')">
+                <span class="icon">✓</span>
+                <span>Всё актуально</span>
+            </button>
+            <button class="btn-select" id="btnRentOut" onclick="selectStatus('rent_out')">
+                <span class="icon">✕</span>
+                <span>Сдано / снято</span>
+            </button>
+            <button class="btn-select btn-select-full" id="btnEdit" onclick="selectStatus('edit')">
+                <span class="icon">✏️</span>
+                <span>Изменились условия (ставка / площадь)</span>
+            </button>
+        </div>
+
+        <!-- Панель изменения условий -->
+        <div class="edit-panel" id="editPanel">
+            <div class="field-group">
+                <label class="field-label">Новая ставка (₽ за м² в год):</label>
+                <input type="number" class="input-field" id="newRate" value="42000" placeholder="42000">
+            </div>
+            <div class="field-group">
+                <label class="field-label">Площадь (м²):</label>
+                <input type="number" class="input-field" id="newArea" value="145" placeholder="145">
+            </div>
+            <div class="field-group">
+                <label class="field-label">Комментарий для брокера:</label>
+                <input type="text" class="input-field" id="newComment" placeholder="Например: возможен торг от 100 м²">
+            </div>
+        </div>
+
+        <div class="main-action-btn">
+            <button class="btn-submit" id="submitBtn" onclick="sendResult()">Подтвердить условия</button>
+        </div>
+    </div>
+
+    <!-- Экран благодарности -->
+    <div class="success-screen" id="successScreen">
+        <div class="success-icon">✓</div>
+        <div class="success-title">Спасибо за ответ!</div>
+        <div class="success-desc">
+            Информация передана ведущему брокеру Times Estate. Данные в CRM обновлены.
+        </div>
+        <button class="btn-submit" onclick="closeApp()">Закрыть окно</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram ? window.Telegram.WebApp : null;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            // Настройка цветовой гаммы шапки Telegram
+            tg.setHeaderColor('#0f172a');
+            tg.setBackgroundColor('#0f172a');
+        }
+
+        let currentChoice = 'actual';
+
+        function haptic(type = 'light') {
+            if (tg && tg.HapticFeedback) {
+                if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
+                else tg.HapticFeedback.impactOccurred(type);
+            }
+        }
+
+        function selectStatus(status) {
+            currentChoice = status;
+            haptic('selection_changed');
+
+            const btnActual = document.getElementById('btnActual');
+            const btnRentOut = document.getElementById('btnRentOut');
+            const btnEdit = document.getElementById('btnEdit');
+            const editPanel = document.getElementById('editPanel');
+            const submitBtn = document.getElementById('submitBtn');
+
+            btnActual.className = 'btn-select';
+            btnRentOut.className = 'btn-select';
+            btnEdit.className = 'btn-select btn-select-full';
+
+            if (status === 'actual') {
+                btnActual.classList.add('active-green');
+                editPanel.style.display = 'none';
+                submitBtn.innerText = 'Подтвердить актуальность ✓';
+                submitBtn.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)';
+            } else if (status === 'rent_out') {
+                btnRentOut.classList.add('active-red');
+                editPanel.style.display = 'none';
+                submitBtn.innerText = 'Пометить как «Сдано» ✕';
+                submitBtn.style.background = 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)';
+            } else if (status === 'edit') {
+                btnEdit.classList.add('active-gold');
+                editPanel.style.display = 'block';
+                submitBtn.innerText = 'Сохранить новые условия ✏️';
+                submitBtn.style.background = 'linear-gradient(135deg, #d97706 0%, #b45309 100%)';
+            }
+        }
+
+        function sendResult() {
+            haptic('success');
+
+            const payload = {
+                status: currentChoice,
+                new_rate: document.getElementById('newRate').value,
+                new_area: document.getElementById('newArea').value,
+                comment: document.getElementById('newComment').value,
+                block_id: 99901,
+                timestamp: new Date().toISOString()
+            };
+
+            // Если открыто внутри Telegram Mini App — отправляем данные боту
+            if (tg && tg.sendData) {
+                tg.sendData(JSON.stringify(payload));
+            }
+
+            // Показываем стильный экран подтверждения
+            document.getElementById('contentBlock').style.display = 'none';
+            document.getElementById('successScreen').style.display = 'block';
+        }
+
+        function closeApp() {
+            if (tg && tg.close) {
+                tg.close();
+            } else {
+                window.close();
+            }
+        }
+
+        // Инициализация кнопки
+        selectStatus('actual');
+    </script>
+</body>
+</html>
